@@ -349,6 +349,7 @@ button {
   padding-top: 75%;
   background: #f3f4f6;
   overflow: hidden;
+  cursor: pointer;
 }
 
 .product-card__img {
@@ -377,6 +378,11 @@ button {
   font-weight: 700;
   color: var(--color-secondary);
   margin-bottom: 4px;
+  cursor: pointer;
+}
+
+.product-card__title:hover {
+  text-decoration: underline;
 }
 
 .product-card__description {
@@ -871,6 +877,228 @@ button {
 @keyframes toast-out {
   from { opacity: 1; transform: translateY(0); }
   to { opacity: 0; transform: translateY(12px); }
+}
+
+/* --- Product Detail Modal --- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 500;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal-overlay--visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.product-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  overflow-y: auto;
+}
+
+.product-modal--open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.product-modal__close {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 610;
+  background: var(--color-surface);
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+  transition: background-color var(--transition);
+}
+
+.product-modal__close:hover {
+  background: #f3f4f6;
+}
+
+.product-modal__close:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.product-modal__inner {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  max-width: 900px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.product-modal__gallery {
+  position: relative;
+  background: #f3f4f6;
+  flex-shrink: 0;
+}
+
+.product-modal__main-img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  display: block;
+}
+
+.product-modal__thumbs {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  overflow-x: auto;
+}
+
+.product-modal__thumb {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color var(--transition);
+  flex-shrink: 0;
+}
+
+.product-modal__thumb:hover {
+  border-color: var(--color-text-muted);
+}
+
+.product-modal__thumb--active {
+  border-color: var(--color-primary);
+}
+
+.product-modal__info {
+  padding: 24px;
+}
+
+.product-modal__title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-secondary);
+  margin-bottom: 8px;
+}
+
+.product-modal__price {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.product-modal__description {
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  margin-bottom: 20px;
+  font-size: 0.95rem;
+}
+
+.product-modal__description p {
+  margin-bottom: 8px;
+}
+
+.product-modal__variants {
+  margin-bottom: 16px;
+}
+
+.product-modal__variant-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-bottom: 6px;
+  display: block;
+}
+
+.product-modal__variant-select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  background: #fff;
+  cursor: pointer;
+}
+
+.product-modal__variant-select:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.product-modal__actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.product-modal__add-btn {
+  flex: 1;
+}
+
+@media (min-width: 640px) {
+  .product-modal__inner {
+    flex-direction: row;
+    max-height: 80vh;
+  }
+
+  .product-modal__gallery {
+    width: 50%;
+    min-height: 100%;
+  }
+
+  .product-modal__main-img {
+    aspect-ratio: auto;
+    height: 100%;
+    min-height: 300px;
+  }
+
+  .product-modal__thumbs {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,0.3));
+    padding: 16px 12px 12px;
+  }
+
+  .product-modal__thumb {
+    border-color: rgba(255,255,255,0.4);
+  }
+
+  .product-modal__thumb--active {
+    border-color: #fff;
+  }
+
+  .product-modal__info {
+    width: 50%;
+    overflow-y: auto;
+    padding: 32px;
+  }
+
+  .product-modal__title {
+    font-size: 1.75rem;
+  }
 }
 
 /* --- Offline Banner --- */

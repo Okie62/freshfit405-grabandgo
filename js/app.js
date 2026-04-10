@@ -44,6 +44,11 @@ function cacheDom() {
   dom.overlay = $('#overlay');
   dom.toastContainer = $('#toast-container');
   dom.header = $('header');
+  dom.modalOverlay = $('#modal-overlay');
+  dom.productModal = $('#product-modal');
+  dom.modalClose = $('#modal-close');
+  dom.modalGallery = $('#modal-gallery');
+  dom.modalInfo = $('#modal-info');
 }
 
 // ============================================
@@ -84,7 +89,8 @@ async function fetchCollectionProducts() {
               id
               title
               description
-              images(first: 3) {
+              descriptionHtml
+              images(first: 5) {
                 edges {
                   node {
                     url
@@ -489,11 +495,11 @@ function renderProducts(products) {
 
       return `
         <article class="product-card" data-product-id="${product.id}">
-          <div class="product-card__img-wrap">
+          <div class="product-card__img-wrap" data-action="view-product" data-product-id="${product.id}" role="button" tabindex="0" aria-label="View ${product.title} details">
             ${imgSrc ? `<img class="product-card__img" src="${imgSrc}" alt="${imgAlt}" loading="lazy" width="${image?.width || 600}" height="${image?.height || 450}">` : ''}
           </div>
           <div class="product-card__body">
-            <h3 class="product-card__title">${product.title}</h3>
+            <h3 class="product-card__title" data-action="view-product" data-product-id="${product.id}" role="button" tabindex="0">${product.title}</h3>
             <p class="product-card__description">${product.description || ''}</p>
             <p class="product-card__price" data-default-price="${defaultVariant.price.amount}">$${parseFloat(defaultVariant.price.amount).toFixed(2)}</p>
             ${!isAvailable ? '<p class="product-card__sold-out">Sold Out</p>' : ''}
@@ -590,6 +596,132 @@ function showToast(message, type = '') {
 }
 
 // ============================================
+// PRODUCT DETAIL MODAL
+// ============================================
+
+let modalPreviousFocus = null;
+
+function openProductModal(productId) {
+  const product = state.products.find((p) => p.id === productId);
+  if (!product) return;
+
+  renderProductModal(product);
+
+  modalPreviousFocus = document.activeElement;
+  dom.productModal.classList.add('product-modal--open');
+  dom.productModal.setAttribute('aria-hidden', 'false');
+  dom.modalOverlay.classList.add('modal-overlay--visible');
+  dom.modalOverlay.setAttribute('aria-hidden', 'false');
+  dom.modalClose.focus();
+  document.body.style.overflow = 'hidden';
+}
+
+function closeProductModal() {
+  dom.productModal.classList.remove('product-modal--open');
+  dom.productModal.setAttribute('aria-hidden', 'true');
+  dom.modalOverlay.classList.remove('modal-overlay--visible');
+  dom.modalOverlay.setAttribute('aria-hidden', 'true');
+
+  if (!state.cartOpen) {
+    document.body.style.overflow = '';
+  }
+
+  if (modalPreviousFocus) modalPreviousFocus.focus();
+}
+
+function renderProductModal(product) {
+  const images = product.images.edges.map((e) => e.node);
+  const variants = product.variants.edges.map((e) => e.node);
+  const defaultVariant = variants[0];
+  const hasMultipleVariants = variants.length > 1;
+  const isAvailable = variants.some((v) => v.availableForSale);
+
+  // Gallery
+  const mainImgUrl = images[0] ? optimizeImageUrl(images[0].url, 800) : '';
+  const mainImgAlt = images[0]?.altText || product.title;
+
+  let thumbsHtml = '';
+  if (images.length > 1) {
+    thumbsHtml = `<div class="product-modal__thumbs">
+      ${images.map((img, i) => `<img class="product-modal__thumb${i === 0 ? ' product-modal__thumb--active' : ''}" src="${optimizeImageUrl(img.url, 128)}" alt="${img.altText || product.title}" data-full-url="${optimizeImageUrl(img.url, 800)}" data-index="${i}">`).join('')}
+    </div>`;
+  }
+
+  dom.modalGallery.innerHTML = `
+    ${mainImgUrl ? `<img class="product-modal__main-img" id="modal-main-img" src="${mainImgUrl}" alt="${mainImgAlt}">` : ''}
+    ${thumbsHtml}
+  `;
+
+  // Thumbnail click handler
+  dom.modalGallery.addEventListener('click', (e) => {
+    const thumb = e.target.closest('.product-modal__thumb');
+    if (!thumb) return;
+    const mainImg = document.getElementById('modal-main-img');
+    if (mainImg) mainImg.src = thumb.dataset.fullUrl;
+    dom.modalGallery.querySelectorAll('.product-modal__thumb').forEach((t) => t.classList.remove('product-modal__thumb--active'));
+    thumb.classList.add('product-modal__thumb--active');
+  });
+
+  // Variant selector
+  let variantHtml = '';
+  if (hasMultipleVariants) {
+    const options = variants
+      .map(
+        (v) =>
+          `<option value="${v.id}" data-price="${v.price.amount}" ${!v.availableForSale ? 'disabled' : ''}>${v.title}${!v.availableForSale ? ' (Sold Out)' : ''} — $${parseFloat(v.price.amount).toFixed(2)}</option>`
+      )
+      .join('');
+    variantHtml = `
+      <div class="product-modal__variants">
+        <label class="product-modal__variant-label" for="modal-variant-select">Option</label>
+        <select class="product-modal__variant-select" id="modal-variant-select">
+          ${options}
+        </select>
+      </div>`;
+  }
+
+  // Use descriptionHtml if available, else plain description
+  const descriptionContent = product.descriptionHtml || product.description || 'No description available.';
+
+  dom.modalInfo.innerHTML = `
+    <h2 class="product-modal__title">${product.title}</h2>
+    <p class="product-modal__price" id="modal-price">$${parseFloat(defaultVariant.price.amount).toFixed(2)}</p>
+    <div class="product-modal__description">${descriptionContent}</div>
+    ${!isAvailable ? '<p class="product-card__sold-out">Sold Out</p>' : ''}
+    ${variantHtml}
+    ${isAvailable ? `
+      <div class="product-modal__actions">
+        <div class="qty-control">
+          <button class="qty-control__btn" type="button" data-action="modal-qty-minus" aria-label="Decrease quantity">−</button>
+          <span class="qty-control__value" id="modal-qty" data-qty="1">1</span>
+          <button class="qty-control__btn" type="button" data-action="modal-qty-plus" aria-label="Increase quantity">+</button>
+        </div>
+        <button class="btn btn--primary product-modal__add-btn" type="button" data-action="modal-add-to-cart" data-variant-id="${defaultVariant.id}">Add to Cart</button>
+      </div>` : ''}
+  `;
+
+  // Variant change handler
+  const variantSelect = document.getElementById('modal-variant-select');
+  if (variantSelect) {
+    variantSelect.addEventListener('change', (e) => {
+      const selectedOption = e.target.options[e.target.selectedIndex];
+      document.getElementById('modal-price').textContent = `$${parseFloat(selectedOption.dataset.price).toFixed(2)}`;
+      const addBtn = dom.modalInfo.querySelector('[data-action="modal-add-to-cart"]');
+      if (addBtn) {
+        addBtn.dataset.variantId = e.target.value;
+        if (selectedOption.disabled) {
+          addBtn.disabled = true;
+          addBtn.textContent = 'Sold Out';
+        } else {
+          addBtn.disabled = false;
+          addBtn.textContent = 'Add to Cart';
+        }
+      }
+    });
+  }
+}
+
+// ============================================
 // CART DRAWER
 // ============================================
 
@@ -653,9 +785,19 @@ function setupEvents() {
   dom.cartClose.addEventListener('click', closeCart);
   dom.overlay.addEventListener('click', closeCart);
 
+  // Product modal
+  dom.modalClose.addEventListener('click', closeProductModal);
+  dom.modalOverlay.addEventListener('click', closeProductModal);
+
+  // Modal info — event delegation for qty and add-to-cart
+  dom.modalInfo.addEventListener('click', handleModalAction);
+
   // Escape key
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && state.cartOpen) closeCart();
+    if (e.key === 'Escape') {
+      if (state.cartOpen) closeCart();
+      else if (dom.productModal.classList.contains('product-modal--open')) closeProductModal();
+    }
   });
 
   // Focus trap
@@ -669,6 +811,17 @@ function setupEvents() {
 
   // Cart items — event delegation
   dom.cartItems.addEventListener('click', handleCartAction);
+
+  // Keyboard activation for product image/title (Enter or Space opens modal)
+  dom.productGrid.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      const el = e.target.closest('[data-action="view-product"]');
+      if (el) {
+        e.preventDefault();
+        openProductModal(el.dataset.productId);
+      }
+    }
+  });
 
   // Variant select change
   dom.productGrid.addEventListener('change', handleVariantChange);
@@ -722,6 +875,12 @@ function handleProductAction(e) {
   const btn = e.target.closest('[data-action]');
   if (!btn) return;
 
+  // View product modal
+  if (btn.dataset.action === 'view-product') {
+    openProductModal(btn.dataset.productId);
+    return;
+  }
+
   const card = btn.closest('.product-card');
   const qtyEl = card.querySelector('.qty-control__value');
   let qty = parseInt(qtyEl.dataset.qty, 10);
@@ -742,6 +901,83 @@ function handleProductAction(e) {
     case 'add-to-cart':
       handleAddToCart(btn.dataset.variantId, qty, card);
       break;
+  }
+}
+
+function handleModalAction(e) {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+
+  const qtyEl = document.getElementById('modal-qty');
+
+  switch (btn.dataset.action) {
+    case 'modal-qty-minus': {
+      let qty = Math.max(1, parseInt(qtyEl.dataset.qty, 10) - 1);
+      qtyEl.dataset.qty = qty;
+      qtyEl.textContent = qty;
+      break;
+    }
+    case 'modal-qty-plus': {
+      let qty = Math.min(99, parseInt(qtyEl.dataset.qty, 10) + 1);
+      qtyEl.dataset.qty = qty;
+      qtyEl.textContent = qty;
+      break;
+    }
+    case 'modal-add-to-cart': {
+      const qty = parseInt(qtyEl.dataset.qty, 10);
+      handleModalAddToCart(btn.dataset.variantId, qty);
+      break;
+    }
+  }
+}
+
+async function handleModalAddToCart(variantId, quantity) {
+  const addBtn = dom.modalInfo.querySelector('[data-action="modal-add-to-cart"]');
+  const originalText = addBtn.textContent;
+  addBtn.disabled = true;
+  addBtn.textContent = 'Adding...';
+
+  try {
+    let cart;
+    if (state.cart.id) {
+      cart = await addToCart(state.cart.id, variantId, quantity);
+    } else {
+      cart = await createCart(variantId, quantity);
+    }
+
+    state.cart = parseCart(cart);
+    saveCartId(state.cart.id);
+    renderCart();
+    renderCartBadge();
+    closeProductModal();
+    openCart();
+
+    showToast('Added to cart', 'success');
+  } catch (err) {
+    console.error('Modal add to cart error:', err);
+
+    if (err.message.includes('not found') || err.message.includes('invalid')) {
+      state.cart = parseCart(null);
+      saveCartId(null);
+      try {
+        const cart = await createCart(variantId, quantity);
+        state.cart = parseCart(cart);
+        saveCartId(state.cart.id);
+        renderCart();
+        renderCartBadge();
+        closeProductModal();
+        openCart();
+        showToast('Added to cart', 'success');
+        return;
+      } catch (retryErr) {
+        console.error('Retry error:', retryErr);
+      }
+    }
+
+    showToast('Couldn\'t add to cart. Please try again.', 'error');
+  } finally {
+    addBtn.disabled = false;
+    addBtn.textContent = originalText;
   }
 }
 

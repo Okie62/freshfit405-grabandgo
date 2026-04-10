@@ -1,0 +1,21 @@
+{
+  "name": "FreshFit405 Grab & Go",
+  "short_name": "FreshFit405",
+  "description": "Fresh, healthy meal prep available 24/7. Eat Good, Feel Good, Do Good!",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fafafa",
+  "theme_color": "#43bfaf",
+  "icons": [
+    {
+      "src": "assets/logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

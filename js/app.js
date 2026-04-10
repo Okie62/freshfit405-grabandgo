@@ -13,6 +13,16 @@ const CONFIG = {
   },
 };
 
+// --- Pickup Locations ---
+const LOCATIONS = [
+  { id: 'retail', name: 'FreshFit405 Retail Store', lat: 35.6097, lon: -97.6261 },
+  { id: 'ocpd-hq', name: 'OCPD Headquarters', lat: 35.4684, lon: -97.5252 },
+  { id: 'ocpd-training', name: 'OCPD Training Center', lat: 35.4777, lon: -97.5832 },
+  { id: 'ocpd-hefner', name: 'OCPD Hefner Station', lat: 35.5946, lon: -97.5918 },
+  { id: 'beta-theta-pi', name: 'Beta Theta Pi Fraternity', lat: 35.2074, lon: -97.4502 },
+  { id: 'hteao', name: 'HTeaO Nicholson Tower', lat: 35.4816, lon: -97.4941 },
+];
+
 // --- State ---
 const state = {
   products: [],
@@ -49,6 +59,8 @@ function cacheDom() {
   dom.modalClose = $('#modal-close');
   dom.modalGallery = $('#modal-gallery');
   dom.modalInfo = $('#modal-info');
+  dom.findNearestBtn = $('#find-nearest-btn');
+  dom.locationsGrid = $('#locations-grid');
 }
 
 // ============================================
@@ -806,6 +818,9 @@ function setupEvents() {
   // Retry button
   dom.retryBtn.addEventListener('click', loadProducts);
 
+  // Find nearest location
+  dom.findNearestBtn.addEventListener('click', findNearestLocation);
+
   // Product grid — event delegation
   dom.productGrid.addEventListener('click', handleProductAction);
 
@@ -1078,6 +1093,114 @@ async function handleCartAction(e) {
     console.error('Cart action error:', err);
     showToast('Couldn\'t update cart. Please try again.', 'error');
   }
+}
+
+// ============================================
+// GEOLOCATION — NEAREST LOCATION
+// ============================================
+
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 3958.8; // Earth's radius in miles
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+function findNearestLocation() {
+  if (!navigator.geolocation) {
+    showToast('Geolocation is not supported by your browser.', 'error');
+    return;
+  }
+
+  const btn = dom.findNearestBtn;
+  btn.disabled = true;
+  btn.innerHTML = `
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="spin"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+    Locating...`;
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const userLat = position.coords.latitude;
+      const userLon = position.coords.longitude;
+      renderLocationDistances(userLat, userLon);
+
+      btn.disabled = false;
+      btn.innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+        Update Location`;
+    },
+    (error) => {
+      btn.disabled = false;
+      btn.innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+        Find Nearest Location`;
+
+      switch (error.code) {
+        case error.PERMISSION_DENIED:
+          showToast('Location access denied. Please allow location in your browser settings.', 'error');
+          break;
+        case error.POSITION_UNAVAILABLE:
+          showToast('Unable to determine your location. Please try again.', 'error');
+          break;
+        case error.TIMEOUT:
+          showToast('Location request timed out. Please try again.', 'error');
+          break;
+        default:
+          showToast('An error occurred getting your location.', 'error');
+      }
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
+  );
+}
+
+function renderLocationDistances(userLat, userLon) {
+  // Calculate distances
+  const sorted = LOCATIONS.map((loc) => ({
+    ...loc,
+    distance: haversine(userLat, userLon, loc.lat, loc.lon),
+  })).sort((a, b) => a.distance - b.distance);
+
+  // Remove existing nearest highlight
+  dom.locationsGrid.querySelectorAll('.location-card').forEach((card) => {
+    card.classList.remove('location-card--nearest');
+  });
+
+  // Update each card with distance and reorder in DOM
+  sorted.forEach((loc, index) => {
+    const card = dom.locationsGrid.querySelector(`[data-location-id="${loc.id}"]`);
+    if (!card) return;
+
+    // Set distance badge
+    const badge = card.querySelector('.location-card__distance');
+    const dist = loc.distance < 0.1
+      ? `${Math.round(loc.distance * 5280)} ft`
+      : `${loc.distance.toFixed(1)} mi`;
+    badge.textContent = dist;
+    badge.classList.add('location-card__distance--visible');
+    badge.setAttribute('aria-hidden', 'false');
+
+    // Highlight nearest
+    if (index === 0) {
+      card.classList.add('location-card--nearest');
+    }
+
+    // Reorder in DOM (sorted by distance)
+    dom.locationsGrid.appendChild(card);
+  });
+
+  // Toast with nearest
+  const nearest = sorted[0];
+  const nearestDist = nearest.distance < 0.1
+    ? `${Math.round(nearest.distance * 5280)} ft`
+    : `${nearest.distance.toFixed(1)} mi`;
+  showToast(`Nearest: ${nearest.name} (${nearestDist} away)`, 'success');
 }
 
 // ============================================

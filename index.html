@@ -118,34 +118,66 @@
       <div class="container">
         <h2 class="section-title">Pickup Locations</h2>
         <p class="locations__subtitle">Available 24/7 at all locations</p>
-        <div class="locations__grid">
-          <div class="location-card">
+        <div class="locations__find-btn">
+          <button class="btn btn--primary" id="find-nearest-btn" type="button">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/><path d="M12 2a10 10 0 0 1 0 20 10 10 0 0 1 0-20"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+            Find Nearest Location
+          </button>
+        </div>
+        <div class="locations__grid" id="locations-grid">
+          <div class="location-card" data-location-id="retail">
+            <span class="location-card__distance" aria-hidden="true"></span>
             <div class="location-card__icon" aria-hidden="true">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
             </div>
-            <h3 class="location-card__name">OCPD HQ</h3>
-            <p class="location-card__detail">Downtown OKC</p>
+            <h3 class="location-card__name">FreshFit405 Retail Store</h3>
+            <p class="location-card__detail">NW Oklahoma City</p>
+            <p class="location-card__address">6200 W Memorial Rd, Ste B</p>
           </div>
-          <div class="location-card">
+          <div class="location-card" data-location-id="ocpd-hq">
+            <span class="location-card__distance" aria-hidden="true"></span>
+            <div class="location-card__icon" aria-hidden="true">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <h3 class="location-card__name">OCPD Headquarters</h3>
+            <p class="location-card__detail">Downtown OKC</p>
+            <p class="location-card__address">700 Colcord Dr</p>
+          </div>
+          <div class="location-card" data-location-id="ocpd-training">
+            <span class="location-card__distance" aria-hidden="true"></span>
             <div class="location-card__icon" aria-hidden="true">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
             </div>
             <h3 class="location-card__name">OCPD Training Center</h3>
             <p class="location-card__detail">Oklahoma City</p>
+            <p class="location-card__address">800 N Portland Ave</p>
           </div>
-          <div class="location-card">
+          <div class="location-card" data-location-id="ocpd-hefner">
+            <span class="location-card__distance" aria-hidden="true"></span>
             <div class="location-card__icon" aria-hidden="true">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
             </div>
             <h3 class="location-card__name">OCPD Hefner Station</h3>
             <p class="location-card__detail">Oklahoma City</p>
+            <p class="location-card__address">3924 NW 122nd St</p>
           </div>
-          <div class="location-card">
+          <div class="location-card" data-location-id="beta-theta-pi">
+            <span class="location-card__distance" aria-hidden="true"></span>
             <div class="location-card__icon" aria-hidden="true">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
             </div>
             <h3 class="location-card__name">Beta Theta Pi Fraternity</h3>
             <p class="location-card__detail">Norman, OK</p>
+            <p class="location-card__address">800 Chautauqua Ave</p>
+          </div>
+          <div class="location-card" data-location-id="hteao">
+            <span class="location-card__distance" aria-hidden="true"></span>
+            <div class="location-card__icon" aria-hidden="true">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <h3 class="location-card__name">HTeaO Nicholson Tower</h3>
+            <p class="location-card__detail">Oklahoma City</p>
+            <p class="location-card__address">1000 NE 13th St</p>
           </div>
         </div>
       </div>

@@ -547,8 +547,13 @@ button {
   text-align: center;
   color: var(--color-text-muted);
   margin-top: -1.5rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   font-size: 1rem;
+}
+
+.locations__find-btn {
+  text-align: center;
+  margin-bottom: 2rem;
 }
 
 .locations__grid {
@@ -560,16 +565,59 @@ button {
 }
 
 .location-card {
+  position: relative;
   background: var(--color-bg);
   border-radius: var(--radius);
   padding: 24px;
   text-align: center;
-  border: 1px solid #e5e7eb;
-  transition: box-shadow var(--transition);
+  border: 2px solid #e5e7eb;
+  transition: box-shadow var(--transition), border-color 0.3s ease, background-color 0.3s ease;
 }
 
 .location-card:hover {
   box-shadow: var(--shadow-sm);
+}
+
+/* Nearest location highlight */
+.location-card--nearest {
+  border-color: var(--color-primary);
+  background: rgba(67, 191, 175, 0.06);
+  box-shadow: var(--shadow-md);
+}
+
+.location-card--nearest::before {
+  content: 'Nearest';
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 10px;
+  border-radius: 10px;
+}
+
+/* Distance badge */
+.location-card__distance {
+  display: none;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+.location-card__distance--visible {
+  display: inline-block;
 }
 
 .location-card__icon {
@@ -586,6 +634,13 @@ button {
 .location-card__detail {
   font-size: 0.85rem;
   color: var(--color-text-muted);
+}
+
+.location-card__address {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+  opacity: 0.75;
 }
 
 /* --- Footer --- */

@@ -96,6 +96,62 @@ button {
   top: 8px;
 }
 
+/* --- Quick Start Instructions --- */
+.quick-start {
+  background: linear-gradient(135deg, #43bfaf 0%, #359e91 100%);
+  color: #fff;
+}
+
+.quick-start__toggle {
+  display: block;
+  padding: 10px 20px;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+
+.quick-start__toggle::-webkit-details-marker {
+  display: none;
+}
+
+.quick-start__toggle::before {
+  content: '\25B6\00a0';
+  font-size: 0.7rem;
+  vertical-align: middle;
+}
+
+.quick-start[open] .quick-start__toggle::before {
+  content: '\25BC\00a0';
+}
+
+.quick-start__steps {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 20px 14px;
+  columns: 2;
+  column-gap: 24px;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  list-style-position: inside;
+}
+
+.quick-start__steps li {
+  break-inside: avoid;
+}
+
+.quick-start__steps strong {
+  font-weight: 700;
+}
+
+@media (max-width: 480px) {
+  .quick-start__steps {
+    columns: 1;
+    padding-bottom: 12px;
+  }
+}
+
 /* --- Buttons --- */
 .btn {
   display: inline-flex;
